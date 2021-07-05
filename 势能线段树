@@ -1,0 +1,81 @@
+#include<bits/stdc++.h>
+#define int long long
+using namespace std;
+const int N=100001;
+const int M=1e18+10;
+int n,m,w[N],ans;
+int f(int x){
+	int ans=0;
+	while(x){
+		ans+=(x%10);
+		x/=10;
+	}
+	return ans;
+}
+struct node{
+    int l,r,mi,lazy;
+}tr[N*4];
+void pushup(int u){
+    tr[u].mi=min(tr[u<<1].mi,tr[u<<1|1].mi);
+    if(tr[u<<1].lazy==0&&tr[u<<1|1].lazy==0)tr[u].lazy=0;
+}
+void pushdown(int u){
+    
+}
+
+void build(int u,int l,int r){
+    if(l==r)tr[u]={l,r,w[l],1};
+    else{
+        tr[u]={l,r};
+        int mid=l+r>>1;
+        build(u<<1  , l    , mid);
+        build(u<<1|1, mid+1, r);
+        pushup(u);
+    }
+}
+
+void modify(int u,int l,int r){
+    if(tr[u].lazy==0)return;
+    if(tr[u].l==tr[u].r&&tr[u].lazy==1){
+        if(f(tr[u].mi)>=10){
+            tr[u].mi=f(tr[u].mi);
+        }
+        else tr[u].lazy=0;
+        //pushup(u);
+    }
+    else if(tr[u].l>=l&&tr[u].r<=r){
+        modify(u<<1,l,r);
+        modify(u<<1|1,l,r);
+        pushup(u);
+    }
+    else{
+        int mid=tr[u].l+tr[u].r>>1;
+        if(mid>=l)modify(u<<1,l,r);
+        if(mid<r)modify(u<<1|1,l,r);
+        pushup(u);
+    }
+    
+    
+}
+int query(int u,int l,int r){
+    if(tr[u].l>=l&&tr[u].r<=r)return tr[u].mi;
+    else{
+        int mid=tr[u].l+tr[u].r>>1;
+        int ans;
+        if(mid>=l)ans=query(u<<1,l,r);
+        if(mid>r)ans=min(ans,query(u<<1|1,l,r));
+        return ans;
+    }
+}
+
+signed main(){
+	cin>>n>>m;
+	for(int i=1;i<=n;i++)cin>>w[i];
+	build(1,1,n);
+	while(m--){
+	    int a,b,c;
+	    cin>>a>>b>>c;
+	    if(a==1)modify(1,b,c);
+	    if(a==2)cout<<query(1,b,c)<<endl;
+	}
+}
